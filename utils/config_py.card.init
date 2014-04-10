@@ -1,0 +1,7 @@
+Year          = 2012
+ProjectName   = HauteEgypte${Year}
+FlickrProject = Haute Egypte 2012
+LastUpload    = 2012-12-13_15:00
+DIR_DATA      = ${DIR_HOME}/Output
+DIR_OUT       = ${DIR_HOME}/Traitees
+DIR_STORE     = NONE
