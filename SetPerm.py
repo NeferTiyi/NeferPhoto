@@ -57,7 +57,7 @@ for Photoset in PhotosetList[0].findall('.//photoset') :
       except:
         print "Error retrieving photo list"
         exit()
-      print "%s : Page %i/%i" % ( Name, Page , Pages )
+      print "%s : %i photos, page %i/%i" % ( Name, Count , Page , Pages )
 
       for Photo in PhotoList[0] :
         PhotoID     = Photo.get('id')
