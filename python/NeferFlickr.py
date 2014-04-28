@@ -76,7 +76,7 @@ def DumpFlickrCatalog( File ) :
   return
 
 
-def GetFlickrCollPhotosets ( CollName , CollID ) :
+def GetFlickrCollPhotosets( CollName , CollID ) :
 
   # Flickr authentication
   # ---------------------
@@ -103,7 +103,7 @@ def GetFlickrCollPhotosets ( CollName , CollID ) :
   return PhotosetDict
 
 
-def Flickr2Local ( Catalog , InName ) :
+def Flickr2Local( Catalog , InName ) :
 
   # .. Get local name ..
   OutName = ""
@@ -115,7 +115,7 @@ def Flickr2Local ( Catalog , InName ) :
   return OutName
 
 
-def Local2Flickr ( Catalog , InName ) :
+def Local2Flickr( Catalog , InName ) :
 
   # .. Get local name ..
   OutName = ""
@@ -129,7 +129,7 @@ def Local2Flickr ( Catalog , InName ) :
   return OutName
 
 
-def FlickrCount ( PhotosetDict , File ) :
+def FlickrCount( PhotosetDict , File ) :
 
   #===================================================================#
   # Get Flickr count for one collection and dump it to file           #
@@ -153,10 +153,12 @@ def FlickrCount ( PhotosetDict , File ) :
     print "Error opening %s : %s" % ( File, rc )
     exit()
 
+  Total = 0
 
   for Title , ID in PhotosetDict.iteritems() :
     Photoset = flickr.photosets_getInfo(photoset_id=ID)
     Nb = Photoset[0].get('count_photos')
+    Total = Total + int( Nb )
 
     String = "%-50s %4s\n" % ( '"'+Title+'"' , Nb )
 
@@ -167,6 +169,14 @@ def FlickrCount ( PhotosetDict , File ) :
     except :
       print "Error Writing %s" % File
 
+  # Write total to output file
+  # --------------------------
+  String = "%-50s %4s\n" % ( '"Total"' , Total )
+  try :
+    S_File.write( String.encode( 'utf-8' ) )
+  except :
+    print "Error Writing %s" % File
+
   # Close file
   # ----------
   S_File.close()
@@ -174,7 +184,7 @@ def FlickrCount ( PhotosetDict , File ) :
   return
 
 
-def FlickrPhotoList ( ID ) :
+def FlickrPhotoList( ID ) :
 
   #===================================================================#
   # Get Flickr photos list for one photoset                           #

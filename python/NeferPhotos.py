@@ -284,7 +284,7 @@ def PrintCount( mode , DirName="" , \
   # Print local and Flickr count                                      #
   #===================================================================#
 
-  FormatList = [ DirNameLen , 3 , 3 , 3 , 5 , 6 , 5 ]
+  FormatList = [ DirNameLen , 4 , 4 , 4 , 6 , 6 , 5 ]
   # if countdirlen :
   #   FormatList[0] = int(countdirlen)
 
@@ -327,8 +327,8 @@ def PrintCount( mode , DirName="" , \
 
     print FormatHead % \
           ( Bold,"DirName",NoCol , \
-            Bold,"RAW",NoCol , Bold,"JPG",NoCol , Bold,"Dbl",NoCol , \
-            Bold,"Delta",NoCol , Bold,"Flickr",NoCol , Bold,"Delta",NoCol )
+            Bold," RAW",NoCol , Bold," JPG",NoCol , Bold," Dbl",NoCol , \
+            Bold," Delta",NoCol , Bold,"Flickr",NoCol , Bold,"Delta",NoCol )
     print FormatSep
 
   elif mode == "foot" :
@@ -337,7 +337,7 @@ def PrintCount( mode , DirName="" , \
   elif mode == "miss" :
     print FormatMiss % ( BoldRed,DirName,NoCol )
 
-  else :
+  elif mode == "ligne" :
     if CountF == MissByte :
       print FormatMiss % \
             ( StatD,DirName,NoCol , \
@@ -348,6 +348,12 @@ def PrintCount( mode , DirName="" , \
             ( StatD,DirName,NoCol , \
               CountI, StatO,CountO,NoCol , CountB , \
               StatL,DeltaL,NoCol , StatF,CountF,NoCol , StatF,DeltaF,NoCol )
+  elif mode == "total" :
+    print FormatSep
+    print FormatLine % \
+          ( StatD,DirName,NoCol , \
+            CountI, StatO,CountO,NoCol , CountB , \
+            StatL,DeltaL,NoCol , StatF,CountF,NoCol , StatF,DeltaF,NoCol )
 
 
 def FindOri ( DirListOri ) :
@@ -362,10 +368,11 @@ def FindOri ( DirListOri ) :
                glob.glob( os.path.join( DirName , "*.jpg" ) )
 
     if len( FileList ) > 0 :
-      if PrintDir :
-        print "\n%-30s" % DirName
-        print 30*"-"
-        PrintDir = False
+      PrintDir = PrintDirName( DirName , PrintDir )
+      # if PrintDir :
+      #   print "\n%-30s" % DirName
+      #   print 30*"-"
+      #   PrintDir = False
       FileList.sort()
       for FileName in FileList : 
         print os.path.basename( FileName )
@@ -408,8 +415,9 @@ def PrintDirName( DirName , PrintDir ) :
     print 30*"-"
   PrintDir = False
 
+  return PrintDir
 
-def DxO2InOut( DxOFile, ProjectName ) :
+def DxO2InOut( DxOFile, ProjectName , DIR_HOME ) :
 
   BaseFile = os.path.basename( os.path.splitext( DxOFile )[0] )
   ImgDir   = os.path.dirname( DxOFile )
@@ -417,9 +425,9 @@ def DxO2InOut( DxOFile, ProjectName ) :
   ImgOrd   = BaseFile.split("DxO")[1]
   ImgExt   = os.path.splitext( DxOFile )[1]
 
-  FileIn  = os.path.join( ConfigDict["DIR_HOME"] , DxOFile )
+  FileIn  = os.path.join( DIR_HOME , DxOFile )
   FileOut = os.path.join( \
-              ConfigDict["DIR_HOME"] , ImgDir, \
+              DIR_HOME , ImgDir, \
               ProjectName+"_"+ImgNum+ImgOrd+ImgExt )
 
   return FileIn , FileOut
@@ -578,6 +586,32 @@ def UpdateFlickr( FileOut , DirFlickr , PhotosetDict ) :
         print "Error Writing %s" % FileOut
 
     S_File.close()
+
+
+def FullPhotolist( Mode , PathIO ) :
+
+  Pattern = "PhotoList_*.txt"
+  FileOut = Mode + "PhotoList_full.txt"
+
+  Matches = glob.glob( os.path.join( PathIO  , Mode+Pattern ) )
+
+  with open( os.path.join( PathIO , FileOut ) , 'wb' ) as O_File :
+    for Match in Matches :
+      if os.path.basename( Match ) != FileOut :
+        with open( Match ) as I_File :
+            shutil.copyfileobj( I_File , O_File )
+
+  with open( os.path.join( PathIO , FileOut ) , 'r' ) as I_File :
+    PhotoList = I_File.readlines()
+
+  SortedPhotoList = sorted( set( PhotoList ) )
+
+  with open( os.path.join( PathIO , FileOut ) , 'w' ) as O_File :
+    for Photo in SortedPhotoList :
+      try :
+        O_File.write( Photo )
+      except :
+        print "Error Writing %s" % FileOut
 
 
 def RsyncExec( DirName , Pattern , DirOut ) :
