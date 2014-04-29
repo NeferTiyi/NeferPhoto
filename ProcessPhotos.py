@@ -14,7 +14,7 @@
 
 # Modules
 # =======
-import sys, os.path, re, argparse, subprocess, fnmatch, math, time
+import sys, os.path, re, argparse, subprocess, fnmatch, math, time, shutil
        # , os.stat
 # import flickrapi
 
@@ -127,23 +127,17 @@ if args.count :
     args.update = True
 
 
-# Print project information
-# =========================
-if args.info :
-  PrintInfos( ProjectID , ConfigDict )
-
-
 # Build DirList
 # =============
 ( DirList , DirListOri ) = \
   BuildDirList( DIR_HOME , SUBMIT_DIR , \
                 ConfigDict["Year"] , args.directory )
 
-if args.verbose :
-  for DirName in DirList :
-    print DirName
-  for DirName in DirListOri :
-    print DirName
+# if args.verbose :
+#   for DirName in DirList :
+#     print DirName
+#   for DirName in DirListOri :
+#     print DirName
 
 
 # Load photosets list
@@ -152,6 +146,16 @@ if not os.path.exists( ProjectSetsFile ) :
   BuildPhotosetCatalog( ProjectSetsFile , DirList )
 
 PhotosetList = LoadPhotosetCatalog( ProjectSetsFile )
+
+
+# Print project information
+# =========================
+if args.info :
+  PrintInfos( ProjectID , ConfigDict )
+  if args.verbose :
+    print "\n%3s directories\n===============" % ( len( DirList ) )
+    for DirName in DirList :
+      print DirName
 
 
 # Construct files
@@ -207,7 +211,12 @@ if args.update :
 
   # Count
   # -----
-  FlickrCount ( PhotosetDict , FlickrCountFile )
+  FlickrCount( PhotosetDict , FlickrCountFile )
+
+  # Full photo lists
+  # ----------------
+  FullPhotolist( "Local" , LocalPath )
+  FullPhotolist( "Flickr" , FlickrPath )
 
 
 # Rename pictures
@@ -238,7 +247,17 @@ if args.rename :
 
   # nwrit = 0
 
+  FileLog = "MoveFiles.sh"
+  try :
+    S_File = open( FileLog , 'w' )
+  except Exception, rc :
+    print "Error opening %s : %s" % ( FileLog , rc )
+    exit()
+
   for File in SortedList :
+
+    if args.verbose :
+      print File
 
     NewNum = NewNum + 1
 
@@ -271,8 +290,11 @@ if args.rename :
     FileOut = Pre + "%04i" % ( NewNum ) + "." + Ext
 
     print "%s => %s" % ( File, os.path.join( TmpDir, FileOut ) )
+    String = "mv %-50s %-50s\n" % ( File, os.path.join( TmpDir, FileOut ) )
+    S_File.write( String )
     MoveFile( File , os.path.join( TmpDir, FileOut ) )
 
+  S_File.close()
 
   print "%4i input files"   % ( len( SortedList ) )
   print "%4i renamed files" % ( NewNum )
@@ -348,6 +370,11 @@ if args.count :
 
   ChangeDir( DIR_HOME )
 
+  TotalO = 0
+  TotalI = 0
+  TotalB = 0
+  TotalF = 0
+
   PrintCount( "head" )
 
   for DirName in DirList :
@@ -363,11 +390,17 @@ if args.count :
     CountB = GetCountB( DirName , CountDblonsFile )
     DeltaL = CountO - CountI
 
+    TotalO = TotalO + CountO
+    TotalI = TotalI + CountI
+    TotalB = TotalB + CountB
+
     # Flickr Count
     # ------------
     CountF = GetCountF( DirFlickr , FlickrCountFile )
     if CountF != MissByte :
       DeltaF = CountF - CountO
+    else :
+      DeltaF = 0
 
     # Status
     # ------
@@ -378,6 +411,20 @@ if args.count :
                 CountI , CountO , CountB , CountF , \
                 DeltaL , DeltaF , \
                 StatD , StatL , StatO , StatF )
+
+  # Total
+  # -----
+  TotalF = GetCountF( "Total" , FlickrCountFile )
+  if TotalF == MissByte :
+    TotalF = 0
+  DeltaL = TotalO - TotalI
+  DeltaF = TotalF - TotalO
+  ( StatD , StatL , StatO , StatF ) = \
+                  GetStatus( DeltaL , DeltaF , TotalB , TotalF )
+  PrintCount( "total" , "Total" , \
+              TotalI , TotalO , TotalB , TotalF , \
+              DeltaL , DeltaF , \
+              StatD , StatL , StatO , StatF )
 
   PrintCount( "foot" )
 
@@ -470,7 +517,7 @@ if args.process :
         # FileOut = os.path.join( \
         #             DIR_HOME , ImgDir, \
         #             ProjectName+"_"+ImgNum+ImgOrd+ImgExt )
-        ( FileIn , FileOut ) = DxO2InOut( File, ProjectName )
+        ( FileIn , FileOut ) = DxO2InOut( File, ProjectName , DIR_HOME )
 
         print File , FileIn , FileOut
 
@@ -518,7 +565,7 @@ if args.compar :
 
     DirLog = CleanName( DirName )
 
-    Pattern = "PhotoList_" + DirLog + ".txt"
+    Pattern   = "PhotoList_" + DirLog + ".txt"
     LocalLog  = os.path.join( LocalPath , "Local"+Pattern )
     FlickrLog = os.path.join( FlickrPath , "Flickr"+Pattern )
     DirFlickr = Local2Flickr( PhotosetList , DirName )
@@ -532,6 +579,15 @@ if args.compar :
       IdemFiles = CheckFilesIdem( LocalLog , FlickrLog )
       if ( not IdemFiles ) :
         Status = LaunchGvim( LocalLog , FlickrLog )
+
+  LocalLog  = os.path.join( LocalPath  , "LocalPhotoList_full.txt" )
+  FlickrLog = os.path.join( FlickrPath , "FlickrPhotoList_full.txt" )
+  if os.path.isfile ( LocalLog ) and os.path.isfile ( FlickrLog ) :
+    IdemFiles = False
+    IdemFiles = CheckFilesIdem( LocalLog , FlickrLog )
+    if ( not IdemFiles ) :
+      Status = LaunchGvim( LocalLog , FlickrLog )
+
 
 
 # Local and remote rsync
@@ -610,7 +666,6 @@ if args.rsync :
       PrintDir = PrintDirName( DirName , PrintDir )
 
       UploadClean ( "upload" , Pattern , ConfigDict["DIR_STORE"] )
-      exit()
 
       RsyncExec( DirName , Pattern , ConfigDict["DIR_STORE"] )
 
