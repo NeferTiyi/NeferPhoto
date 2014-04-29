@@ -41,8 +41,18 @@ def MoveFile( FileIn , FileOut ) :
   try :
     shutil.move( FileIn , FileOut )
   except Exception , rc :
-    print "Error during move %s => %s : %i" % \
+    print "Error during move %s => %s :\n%s" % \
           ( FileIn , FileOut , rc )
+    exit()
+
+
+def RemoveFile( File ) :
+
+  try :
+    os.remove( File )
+  except Exception , rc :
+    print "Error during remove %s :\n%s" % \
+          ( File , rc )
     exit()
 
 
@@ -362,10 +372,11 @@ def FindOri ( DirListOri ) :
                glob.glob( os.path.join( DirName , "*.jpg" ) )
 
     if len( FileList ) > 0 :
-      if PrintDir :
-        print "\n%-30s" % DirName
-        print 30*"-"
-        PrintDir = False
+      PrintDir = PrintDirName( DirName , PrintDir )
+      # if PrintDir :
+      #   print "\n%-30s" % DirName
+      #   print 30*"-"
+      #   PrintDir = False
       FileList.sort()
       for FileName in FileList : 
         print os.path.basename( FileName )
@@ -407,6 +418,8 @@ def PrintDirName( DirName , PrintDir ) :
     print "\n%s" % DirName
     print 30*"-"
   PrintDir = False
+
+  return PrintDir
 
 
 def DxO2InOut( DxOFile, ProjectName ) :
@@ -661,8 +674,16 @@ def UploadClean( DirIn , Pattern , DirOut ) :
   ChangeDir( DirOut )
 
   for File in glob.glob( os.path.join( DirIn , Pattern ) ) :
-    MoveFile( File , DirOut )
-  
+
+    IdemFiles = False
+    IdemFiles = CheckFilesIdem( File , os.path.join( DirOut , File ) )
+    if ( not IdemFiles ) :
+      # MoveFile( File , DirOut )
+      MoveFile( File , os.path.join( DirOut , File ) )
+      # print "mv %s %s" % ( File , DirOut )
+    else :
+      RemoveFile( File )
+
   ChangeDir( BackDir )
 
 

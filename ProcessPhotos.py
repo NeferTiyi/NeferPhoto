@@ -160,10 +160,6 @@ if args.update :
 
   print "Update!"
 
-  # Count
-  # -----
-  FlickrCount ( PhotosetDict , FlickrCountFile )
-
   # Doublons
   # --------
   try :
@@ -183,7 +179,8 @@ if args.update :
     for File in RawList :
       JpgFile = Raw2Jpg( File , ProjectName )
 
-      Count =  len( FindMatches( DirName , JpgFile ) )
+      Matches = FindMatches( DirName , JpgFile )
+      Count =  len( Matches )
 
       if Count > 1 :
         for Match in Matches[1:] :
@@ -207,6 +204,10 @@ if args.update :
   CollectionDict = LoadFlickrCatalog( FlickrColFile )
   CollectionID   = CollectionDict[FlickrProject]
   PhotosetDict   = GetFlickrCollPhotosets ( FlickrProject , CollectionID )
+
+  # Count
+  # -----
+  FlickrCount ( PhotosetDict , FlickrCountFile )
 
 
 # Rename pictures
@@ -313,7 +314,7 @@ if args.missing :
       Count =  len(Matches)
 
       if Count != 1 :
-        PrintDirName( DirName , PrintDir )
+        PrintDir = PrintDirName( DirName , PrintDir )
 
       if Count == 0 :
         print "No %s" % ( JpgFile )
@@ -332,8 +333,7 @@ if args.missing :
       Count = len(Matches)
 
       if Count == 0 :
-        PrintDirName( DirName , PrintDir )
-        # PrintDir = False
+        PrintDir = PrintDirName( DirName , PrintDir )
 
         print "No %s nor %s" % \
               ( os.path.join( DirName , "Ori" , RawFile1 ) , \
@@ -402,7 +402,7 @@ if args.tifdbl :
       Matches = FindMatches( DirName , TifFile )
 
       if len( Matches ) > 0 :
-        PrintDirName( DirName , PrintDir )
+        PrintDir = PrintDirName( DirName , PrintDir )
         print "%s  &  %s" % ( JpgFile , TifFile )
 
   ChangeDir( SUBMIT_DIR )
@@ -429,7 +429,7 @@ if args.tifmis :
       Matches = FindMatches( DirName , JpgFile )
 
       if len( Matches ) == 0 :
-        PrintDirName( DirName , PrintDir )
+        PrintDir = PrintDirName( DirName , PrintDir )
         print TifFile
 
   ChangeDir( SUBMIT_DIR )
@@ -452,8 +452,7 @@ if args.process :
 
     FileList.sort()
     if len( FileList ) > 0 :
-      PrintDirName( DirName , PrintDir )
-      # PrintDir = False
+      PrintDir = PrintDirName( DirName , PrintDir )
 
       for File in FileList :
 
@@ -568,7 +567,7 @@ if args.rsync :
         print "Nothing to do"
         continue
 
-      PrintDirName( DirName , PrintDir )
+      PrintDir = PrintDirName( DirName , PrintDir )
 
       RsyncExec( DirName , Pattern , ConfigDict["DIR_OUT"] )
 
@@ -608,9 +607,10 @@ if args.rsync :
         print "Nothing to do"
         continue
 
-      PrintDirName( DirName , PrintDir )
+      PrintDir = PrintDirName( DirName , PrintDir )
 
       UploadClean ( "upload" , Pattern , ConfigDict["DIR_STORE"] )
+      exit()
 
       RsyncExec( DirName , Pattern , ConfigDict["DIR_STORE"] )
 
