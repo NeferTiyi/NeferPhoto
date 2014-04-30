@@ -356,7 +356,6 @@ if args.missing :
 
       if Count == 0 :
         PrintDir = PrintDirName( DirName , PrintDir )
-        # PrintDir = False
 
         print "No %s nor %s" % \
               ( os.path.join( DirName , "Ori" , RawFile1 ) , \
@@ -501,7 +500,6 @@ if args.process :
     FileList.sort()
     if len( FileList ) > 0 :
       PrintDir = PrintDirName( DirName , PrintDir )
-      # PrintDir = False
 
       for File in FileList :
 
@@ -568,7 +566,7 @@ if args.compar :
     DirLog = CleanName( DirName )
 
     Pattern   = "PhotoList_" + DirLog + ".txt"
-    LocalLog  = os.path.join( LocalPath  , "Local"+Pattern )
+    LocalLog  = os.path.join( LocalPath , "Local"+Pattern )
     FlickrLog = os.path.join( FlickrPath , "Flickr"+Pattern )
     DirFlickr = Local2Flickr( PhotosetList , DirName )
 
