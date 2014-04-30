@@ -49,7 +49,8 @@ for Photoset in PhotosetList[0].findall('.//photoset') :
 
     Pages  = int( math.ceil( float( CountP + CountV ) / float( PerPage ) ) )
 
-    for Page in range( 1 , Pages+1 ) :
+    # for Page in range( 1 , Pages+1 ) :
+    for Page in range( Pages, 1, -1 ) :
       try :
         PhotoList = flickr.photosets_getPhotos( \
                       photoset_id=SetID , per_page=PerPage , page=Page )
