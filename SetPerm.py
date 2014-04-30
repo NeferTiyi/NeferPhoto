@@ -23,6 +23,8 @@ sys.path.append('./python')
 from NeferPhotos import *
 from NeferFlickr import *
 
+NbError = 0
+
 
 #Flickr authorization
 # flickr = FlickrAuth( APIKey , APISecret )
@@ -34,35 +36,42 @@ flickr.get_token_part_two((token, frob))
 
 
 # Photoset list
-try: 
+try : 
   PhotosetList = flickr.photosets_getList( user_id=UserID )
-except:
+except :
   print "Flickr error"
   exit(2)
 
 for Photoset in PhotosetList[0].findall('.//photoset') :
   if Photoset.find('title').text != "Visible" :
-    SetID = Photoset.get('id')
-    Name  = Photoset.find('title').text
-    Count = int( Photoset.get('photos') ) #+ \
-            # int( Photoset.get('videos') )
+    SetID  = Photoset.get('id')
+    Name   = Photoset.find('title').text
+    CountP = int( Photoset.get('photos') )
+    CountV = int( Photoset.get('videos') )
 
-    Pages = int( math.ceil( float( Count ) / 500. ) )
+    Pages = int( math.ceil( float( CountP + CountV ) / 500. ) )
 
     # print SetID, Name, Count, Pages
 
     for Page in range( 1 , Pages+1 ) :
-      try:
+      try :
         PhotoList = flickr.photosets_getPhotos( photoset_id=SetID , page=Page )
-      except:
-        print "Error retrieving photo list"
+      except Exception, rc :
+        print "Error retrieving photo list for photoset %s : %s" % ( Name , rc )
         exit()
-      print "%s : %i photos, page %i/%i" % ( Name, Count , Page , Pages )
+      print "%s : %i photos, %i vidéos, page %i/%i" % \
+            ( Name, CountP, CountV, , Page , Pages )
 
       for Photo in PhotoList[0] :
         PhotoID     = Photo.get('id')
         Title       = Photo.get('title')
-        PhotoInfo   = flickr.photos_getInfo( photo_id=PhotoID )
+        try :
+          PhotoInfo = flickr.photos_getInfo( photo_id=PhotoID )
+        except Exception, rc :
+          print "Error getting info for photo <%s>, in photoset <%s>" % \
+                ( Title , Name , rc )
+          NbError += 1
+          continue
         IsPublic    = PhotoInfo.find('.//visibility').get('ispublic')
         IsFriend    = PhotoInfo.find('.//visibility').get('isfriend')
         IsFamily    = PhotoInfo.find('.//visibility').get('isfamily')
@@ -70,14 +79,22 @@ for Photoset in PhotosetList[0].findall('.//photoset') :
         PermAddmeta = PhotoInfo.find('.//permissions').get('permaddmeta')
 
         if PermComment != "3" or PermAddmeta != "1" :
-          print Title, IsPublic, IsFriend, IsFamily, PermComment, PermAddmeta
-          Result = flickr.photos_setPerms( 
-            photo_id=PhotoID , 
-            is_public=IsPublic , is_friend=IsFriend , is_family=IsFamily , 
-            perm_comment="3" , perm_addmeta="1"
-          )
+          print IsPublic, IsFriend, IsFamily, PermComment, PermAddmeta, Title
+          try : 
+            Result = flickr.photos_setPerms( 
+              photo_id=PhotoID , 
+              is_public=IsPublic , is_friend=IsFriend , is_family=IsFamily , 
+              perm_comment="3" , perm_addmeta="1"
+            )
+          except Exception, rc :
+            print "Error setting perms for <%s>, in photoset <%s> : %s" % \
+                  ( Title , Name , rc )
+            NbError += 1
         # else :
         #   print Title
+
+
+print "%i photos could not be updated" % ( NbError ) 
 
 # flickr.photos.setPerms
 # Set permissions for a photo.
