@@ -80,7 +80,7 @@ def CleanName ( Name ) :
   return Name
 
 
-def InitConfigDict( DIR_HOME , ID , CatFile ) :
+def InitConfigDict( DIR_HOME , ID , CatFile, Init ) :
 
   DictOut = {}
 
@@ -94,17 +94,27 @@ def InitConfigDict( DIR_HOME , ID , CatFile ) :
 
   # Load config.card
   # ================
-  ReadConfigCard( DIR_HOME + "/config_py.card" , DictOut )
+  ReadConfigCard( DIR_HOME + "/config_py.card" , DictOut , Init )
 
   return DictOut
 
 
-def ReadConfigCard ( File , ConfigDict ) :
+def ReadConfigCard ( File , ConfigDict , Init ) :
+
+  if Init or \
+     not os.path.exists( File ) :
+    print "Initialize project"
+    WriteConfigCard( ConfigDict["DIR_HOME"] , File )
 
   try :
     S_File = open( File , 'r' )
-  except Exception, rc :
-    print "Error opening %s : %s" % ( File , rc )
+  # except Exception, rc :
+  except IOError as rc :
+    print "Error opening %s : %s" % ( File , rc.strerror )
+    if rc.errno == 2 :
+      Init = True
+  except:
+    print "Unexpected error:", sys.exc_info()[0]
     exit()
 
   # Read file
@@ -127,6 +137,43 @@ def ReadConfigCard ( File , ConfigDict ) :
         ConfigDict[Option] = Valeur.replace("${"+Opt+"}",ConfigDict[Opt])
 
   return ConfigDict
+
+
+def WriteConfigCard( DIR_HOME , File ) :
+
+  Year = raw_input("Year?\n")
+  ProjectName   = raw_input("Project Name?\n")
+  FlickrProject = raw_input("Flickr Project?\n")
+
+  LineList = [ \
+    "Year          = " + Year , \
+    "ProjectName   = " + ProjectName , \
+    "FlickrProject = " + FlickrProject.encode("utf-8") , \
+    "LastUpload    = 0000-00-00_00:00" , \
+    "DIR_DATA      = ${DIR_HOME}/Output" , \
+    "DIR_OUT       = ${DIR_HOME}/Traitees" , \
+    "DIR_STORE     = NONE" \
+  ]
+
+  try :
+    S_File = open( File , 'w' )
+  # except Exception, rc :
+  except Exception as rc:
+    print "Error opening %s : %s" % ( File , rc.strerror )
+    exit()
+
+  for Line in LineList :
+    # print Line
+    try :
+      S_File.write( Line + "\n" )
+    except :
+      print "Error Writing %s" % File
+
+  S_File.close()
+
+  print "You can manually update config file %s\n" % File
+
+  return
 
 
 def PrintInfos( ProjectID , ConfigDict ) :
@@ -220,8 +267,14 @@ def BuildDirList( DIR_HOME , SUBMIT_DIR , Year , DirName ) :
       DirList    = [ os.path.normpath( DirName ) ]
       DirListOri = [ os.path.normpath( os.path.join( DirName , "Ori" ) ) ]
   else :
-    DirList    = glob.glob( Year + "*/*" )
-    DirListOri = glob.glob( Year + "*/*/Ori" )
+    DirList    = []
+    DirListOri = []
+
+    for origin in glob.glob( Year + "*" ) :
+      for root, dirs, files in os.walk( origin ) :
+        if "Ori" in dirs :
+          DirList.append( root )
+          DirListOri.append( os.path.join( root , "Ori" ) )
 
   ChangeDir( SUBMIT_DIR )
 
@@ -284,7 +337,6 @@ def LoadPhotosetCatalog( File ) :
   return PhotosetList
 
 
-# def PrintCount( mode , countdirlen , DirName="" , \
 def PrintCount( mode , DirName="" , \
                 CountI=0 , CountO=0 , CountB=0 , CountF=0 , \
                 DeltaL=0 , DeltaF=0 , \
@@ -524,7 +576,7 @@ def GetCountF( DirFlickr , File ) :
 
 def GetStatus( DeltaL , DeltaF , CountB , CountF ) :
 
-  if DeltaL != 0 :
+  if DeltaL != 0 and DeltaL != CountB :
     StatL = BoldRed
   else :
     StatL = BoldGreen
@@ -579,7 +631,13 @@ def UpdateLocal( FileOut , DirName , Pattern ) :
 def UpdateFlickr( FileOut , DirFlickr , PhotosetDict ) :
 
   if not DirFlickr == "-99" :
-    SetID = PhotosetDict[DirFlickr.decode( 'utf-8')]
+    try :
+      SetID = PhotosetDict[DirFlickr.decode("utf-8")]
+    except Exception, rc :
+      print "Error retrieving flickr set ID for <%s> from photoset catalog : %s" % \
+            ( DirFlickr , rc )
+      return
+
     # print DirFlickr, SetID
     PhotoList = FlickrPhotoList( SetID )
 
@@ -591,10 +649,11 @@ def UpdateFlickr( FileOut , DirFlickr , PhotosetDict ) :
 
     for Photo in PhotoList[0] :
       Title = Photo.get('title')
+      String = Title + ".jpg\n"
       try :
-        S_File.write( Title + ".jpg\n" )
-      except :
-        print "Error Writing %s" % FileOut
+        S_File.write( String.encode("utf-8") )
+      except Exception, rc :
+        print "Error writing %s : %s" % ( FileOut , rc )
 
     S_File.close()
 

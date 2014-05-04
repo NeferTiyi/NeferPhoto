@@ -47,8 +47,8 @@ def DumpFlickrCatalog( File ) :
 
   try: 
     CollectionTree = flickr.collections_getTree( user_id=UserID )
-  except:
-    print "Flickr error"
+  except Exception as rc :
+    print rc
     exit()
 
   CollectionDict = {}
@@ -60,14 +60,14 @@ def DumpFlickrCatalog( File ) :
   # ----------------
   try:
     S_File = open( File, 'w' )
-  except Exception, rc:
+  except Exception as rc:
     print "Error opening %s : %s" % ( File, rc )
     exit()
 
   # Write Collection dictionary to output file
   # ------------------------------------------
   for CollTitle , CollID in CollectionDict.iteritems() :
-    S_File.write( CollID + "," + CollTitle.encode( "utf-8") + "\n")
+    S_File.write( CollID + "," + CollTitle.encode("utf-8") + "\n")
 
   # Close file
   # ----------
@@ -89,16 +89,23 @@ def GetFlickrCollPhotosets( CollName , CollID ) :
   # print "Retrieve collection tree for ", CollName
   # print "="*72
 
+  errno = 0
+
   try: 
     CollectionTree = flickr.collections_getTree( user_id=UserID , collection_id=CollID )
-  except:
-    print "Flickr error"
-    exit(2)
+  except Exception as rc :
+    print rc
+    errno = int( rc.message.split(":")[1] )
+    if errno != 2 :
+      exit(2)
 
   PhotosetDict = {}
 
-  for Photoset in CollectionTree[0].findall('.//set') :
-    PhotosetDict[Photoset.get('title')] = Photoset.get('id')
+  if errno == 2 :
+    PhotosetDict[CollName] = CollID
+  else :
+    for Photoset in CollectionTree[0].findall('.//set') :
+      PhotosetDict[Photoset.get('title')] = Photoset.get('id')
 
   return PhotosetDict
 
@@ -108,7 +115,7 @@ def Flickr2Local( Catalog , InName ) :
   # .. Get local name ..
   OutName = ""
   for Line in Catalog :
-      if Line['flickr'] == InName.encode( 'utf-8') :
+      if Line['flickr'] == InName.encode("utf-8") :
         OutName = Line['local']
         break
 
@@ -165,7 +172,7 @@ def FlickrCount( PhotosetDict , File ) :
     # Write to output file
     # --------------------
     try :
-      S_File.write( String.encode( 'utf-8' ) )
+      S_File.write( String.encode("utf-8") )
     except :
       print "Error Writing %s" % File
 
@@ -173,7 +180,7 @@ def FlickrCount( PhotosetDict , File ) :
   # --------------------------
   String = "%-50s %4s\n" % ( '"Total"' , Total )
   try :
-    S_File.write( String.encode( 'utf-8' ) )
+    S_File.write( String.encode("utf-8") )
   except :
     print "Error Writing %s" % File
 

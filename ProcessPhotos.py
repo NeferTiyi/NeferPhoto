@@ -32,6 +32,8 @@ parser.add_argument("-v", "--verbose", action="store_true", \
   help="Verbose mode")
 parser.add_argument("-i", "--info", action="store_true", \
   help="Print config.card info")
+parser.add_argument("--check", action="store_true", \
+  help="Don't do anything, just print what would be done")
 parser.add_argument("-n", "--rename", action="store_true", \
   help="Rename pictures")
 parser.add_argument("-u", "--update", action="store_true", \
@@ -53,6 +55,8 @@ parser.add_argument("-p", "--process", action="store_true", \
 parser.add_argument("-lf", "--compar", action="store_true", \
   help="Compare Local and Flickr files")
 parser.add_argument("-r", "--rsync", action="store_true", \
+  help="Synchronize files")
+parser.add_argument("--init", action="store_true", \
   help="Synchronize files")
 args = parser.parse_args()
 
@@ -80,7 +84,7 @@ ProjectDict = LoadProjectCatalog( ProjectCatFile )
 
 
 ConfigDict = InitConfigDict( ProjectDict[ProjectID] , ProjectID , 
-                             ProjectCatFile )
+                             ProjectCatFile , args.init )
 
 ProjectName = ConfigDict["ProjectName"]
 DIR_HOME    = ConfigDict["DIR_HOME"]
@@ -154,6 +158,9 @@ if args.info :
   PrintInfos( ProjectID , ConfigDict )
   if args.verbose :
     print "\n%3s directories\n===============" % ( len( DirList ) )
+    # for DirName in DirListOri :
+    #   print DirName
+    # print 72*"-"
     for DirName in DirList :
       print DirName
 
@@ -519,7 +526,7 @@ if args.process :
         #             ProjectName+"_"+ImgNum+ImgOrd+ImgExt )
         ( FileIn , FileOut ) = DxO2InOut( File, ProjectName , DIR_HOME )
 
-        print File , FileIn , FileOut
+        # print File , FileIn , FileOut
 
         if os.path.isfile( FileOut ) :
           ExistOut = True
@@ -534,20 +541,28 @@ if args.process :
            ( NewerIn and not IdemIn ) or \
            ( not ExistOut ) :
           print "mv %s %s" % ( FileIn , FileOut )
-          os.rename( FileIn , FileOut )
+          if not args.check :
+            os.rename( FileIn , FileOut )
 
-    FileList = FindMatches( DirName , ProjectName+"*_tif.jpg" )
+    FileList = FindMatches( DirName , ProjectName+"*_tif.jpg" ) + \
+               FindMatches( DirName , ProjectName+"*_ice.jpg" )
 
     FileList.sort()
     if len( FileList ) > 0 :
       for File in FileList :
         if not CheckExifOk( File ) :
           if PrintDir :
-            print "Heal exif data for TIF pictures"
+            print "Heal exif data for TIF/ICE pictures"
             PrintDir = False
 
-          FileDxO = File.replace("_tif", "")
-          HealExif( File , FileDxO )
+          if File.find("_tif") > 0 :
+            FileDxO = File.replace("_tif", "")
+          else :
+            FileDxO = File.replace("_ice", "")
+          if args.check :
+            print "Get exif data from %s for %s" % ( FileDxO , File )
+          else :
+            HealExif( File , FileDxO )
 
   ChangeDir( SUBMIT_DIR )
 
