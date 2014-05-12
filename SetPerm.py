@@ -39,6 +39,7 @@ flickr.get_token_part_two((token, frob))
 try :
   LicenceList = flickr.photos_licenses_getInfo()
 except Exception, rc :
+  print rc
   print "Error fetching licence info : %s / %s" % \
         ( LicenceList.find('err').get('code') , LicenceList.find('err').get('msg') )
 
@@ -53,13 +54,14 @@ for Licence in LicenceList[0].findall('.//license') :
 # Photoset list
 try : 
   PhotosetList = flickr.photosets_getList( user_id=UserID )
-except :
+except Exception, rc :
+  print rc
   print "Error fetching photoset list : %s / %s" % \
         ( PhotosetList.find('err').get('code') , PhotosetList.find('err').get('msg') )
   exit(2)
 
 for Photoset in PhotosetList[0].findall('.//photoset') :
-  if Photoset.find('title').text != "Visible" :
+  if Photoset.find('title').text != "Kalarippayatt, par Flore Chapon" :
     SetID  = Photoset.get('id')
     Name   = Photoset.find('title').text
     CountP = int( Photoset.get('photos') )
@@ -67,12 +69,13 @@ for Photoset in PhotosetList[0].findall('.//photoset') :
 
     Pages  = int( math.ceil( float( CountP + CountV ) / float( PerPage ) ) )
 
-    # for Page in range( 1 , Pages+1 ) :
-    for Page in range( Pages, 1, -1 ) :
+    # for Page in range( Pages, 1, -1 ) :
+    for Page in range( 1 , Pages+1 ) :
       try :
         PhotoList = flickr.photosets_getPhotos( \
                       photoset_id=SetID , per_page=PerPage , page=Page )
       except Exception, rc :
+        print rc
         print "Error retrieving photo list for photoset <%s> : %s / %s" % \
               ( Name , PhotoList.find('err').get('code') , PhotoList.find('err').get('msg') )
         continue
@@ -87,6 +90,7 @@ for Photoset in PhotosetList[0].findall('.//photoset') :
         try :
           PhotoInfo = flickr.photos_getInfo( photo_id=PhotoID )
         except Exception, rc :
+          print rc
           print "Error getting info for <%s> in photoset <%s> : %s / %s" % \
                 ( Title , Name , PhotoInfo.find('err').get('code') , PhotoInfo.find('err').get('msg') )
           NbError += 1
@@ -98,24 +102,37 @@ for Photoset in PhotosetList[0].findall('.//photoset') :
         PermComment = PhotoInfo.find('.//permissions').get('permcomment')
         PermAddmeta = PhotoInfo.find('.//permissions').get('permaddmeta')
 
+        if IsPublic == "1" :
+          PermCommentNew = "3"
+          PermAddmetaNew = "1"
+        elif IsFamily == "1" or IsFriend == "1" :
+          PermCommentNew = "1"
+          PermAddmetaNew = "1"
+        else :
+          PermCommentNew = "0"
+          PermAddmetaNew = "0"
 
-        if PermComment != "3" or PermAddmeta != "1" or \
-           LicenceOri != LicenceID :
+        if PermComment != PermCommentNew or \
+           PermAddmeta != PermAddmetaNew or \
+           LicenceOri  != LicenceID :
           print "%s | %s %s %s | %s %s | %s" % \
                 (LicenceOri, IsPublic, IsFriend, IsFamily, \
                  PermComment, PermAddmeta, Title)
 
-        if PermComment != "3" or PermAddmeta != "1" :
+        if PermComment != PermCommentNew or \
+           PermAddmeta != PermAddmetaNew :
           try :
             Result = flickr.photos_setPerms( 
               photo_id=PhotoID , 
               is_public=IsPublic , is_friend=IsFriend , is_family=IsFamily , 
-              perm_comment="3" , perm_addmeta="1"
+              perm_comment=PermCommentNew , perm_addmeta=PermAddmetaNew
             )
           except Exception, rc :
+            print rc
             print "Error setting perms for <%s> in photoset <%s> : %s / %s" % \
                   ( Title , Name , Result.find('err').get('code') , Result.find('err').get('msg') )
             NbError += 1
+            continue
 
         if LicenceOri != LicenceID :
           try :
@@ -123,14 +140,16 @@ for Photoset in PhotosetList[0].findall('.//photoset') :
               photo_id=PhotoID , license_id=LicenceID
             )
           except Exception, rc :
+            print rc
             print "Error setting licence for <%s> in photoset <%s> : %s / %s" % \
                   ( Title , Name , Result.find('err').get('code') , Result.find('err').get('msg') )
             NbError += 1
-          # print Result.get('stat')
+            continue
 
         Nb += 1
         if Nb%10 == 0 :
           print Nb
 
-print "%i photos could not be updated" % ( NbError ) 
+if NbError > 0 :
+  print "%i photos could not be updated" % ( NbError ) 
 
