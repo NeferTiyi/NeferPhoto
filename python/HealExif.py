@@ -1,7 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*-coding:utf-8 -*
 
-import sys, os.path, re, glob, subprocess, fnmatch
+#import sys
+import os.path
+#import re
+#import glob
+import subprocess
+#import fnmatch
 
 # Variables
 # =========
@@ -10,33 +15,35 @@ Orient    = "Horizontal (normal)"
 Copyright = "-copyright="+Author
 Artist    = "-artist="+Author
 
-def CheckExifOk ( FileIn ) :
 
-  Command = [ "exiftool" , "-make" , FileIn ]
+def CheckExifOk(FileIn) :
+
+  Command = ["exiftool" , "-make" , FileIn]
 
   try :
-    output = subprocess.check_output( Command )
-  except Exception, rc :
+    output = subprocess.check_output(Command)
+  except Exception as rc :
     print "Error"
     output = ""
 
-  Status = ( not output == "" )
+  Status = (not output == "")
 
   return Status
 
-def HealExif ( FileIn , FileDxO ) :
 
-  Command = [ "exiftool" , "-overwrite_original_in_place" , \
-              Copyright , Artist , "-addTagsFromFile" , \
-              FileDxO , FileIn ]
+def HealExif(FileIn, FileDxO) :
 
-  if not os.path.isfile( FileDxO ) :
+  Command = ["exiftool", "-overwrite_original_in_place",
+             Copyright, Artist, "-addTagsFromFile",
+             FileDxO, FileIn]
+
+  if not os.path.isfile(FileDxO) :
     print "Missing %s" % FileDxO
   else :
-    print "%s @ %s" % ( FileIn , FileDxO )
+    print "%s @ %s" % (FileIn , FileDxO)
 
     try :
-      subprocess.call( Command )
-    except Exception, rc :
+      subprocess.call(Command)
+    except Exception as rc :
       print "Error in exiftool for %s" % FileIn
       exit()
