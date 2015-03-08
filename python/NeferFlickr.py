@@ -1,7 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*-coding:utf-8 -*
 
-import sys, os.path, re, glob, subprocess, fnmatch
+# import sys
+# import os.path
+# import re
+# import glob
+# import subprocess
+# import fnmatch
 
 # Flickr ID
 # ---------
@@ -13,18 +18,19 @@ from FlickrKey import *
 # from NeferColor import *
 
 
-def FlickrAuth( Key , Secret ) :
+def FlickrAuth(Key, Secret) :
 
-  flickr = flickrapi.FlickrAPI( Key , Secret)
+  flickr = flickrapi.FlickrAPI(Key, Secret)
 
-  (token, frob) = flickr.get_token_part_one(perms='read')
-  if not token: raw_input("Press ENTER after you authorized this program")
+  (token, frob) = flickr.get_token_part_one(perms="read")
+  if not token :
+    raw_input("Press ENTER after you authorized this program")
   flickr.get_token_part_two((token, frob))
-  
+
   return flickr
 
 
-def DumpFlickrCatalog( File ) :
+def DumpFlickrCatalog(File) :
 
   #===================================================================#
   # Get from Flickr the collections title and ID and dump it to file  #
@@ -34,7 +40,7 @@ def DumpFlickrCatalog( File ) :
   # ---------------------
   # print "Flickr Authentication"
   try :
-    flickr = FlickrAuth( APIKey , APISecret )
+    flickr = FlickrAuth(APIKey , APISecret)
   except:
     print "Flickr authentication failed"
     exit()
@@ -45,8 +51,8 @@ def DumpFlickrCatalog( File ) :
   # print "Retrieve collection tree"
   # print "="*72
 
-  try: 
-    CollectionTree = flickr.collections_getTree( user_id=UserID )
+  try :
+    CollectionTree = flickr.collections_getTree(user_id=UserID)
   except Exception as rc :
     print rc
     exit()
@@ -58,16 +64,16 @@ def DumpFlickrCatalog( File ) :
 
   # Open output file
   # ----------------
-  try:
-    S_File = open( File, 'w' )
+  try :
+    S_File = open(File, 'w')
   except Exception as rc:
-    print "Error opening %s : %s" % ( File, rc )
+    print "Error opening %s : %s" % (File, rc)
     exit()
 
   # Write Collection dictionary to output file
   # ------------------------------------------
   for CollTitle , CollID in CollectionDict.iteritems() :
-    S_File.write( CollID + "," + CollTitle.encode("utf-8") + "\n")
+    S_File.write(CollID + "," + CollTitle.encode("utf-8") + "\n")
 
   # Close file
   # ----------
@@ -76,12 +82,12 @@ def DumpFlickrCatalog( File ) :
   return
 
 
-def GetFlickrCollPhotosets( CollName , CollID ) :
+def GetFlickrCollPhotosets(CollName , CollID) :
 
   # Flickr authentication
   # ---------------------
   # print "Flickr Authentication"
-  flickr = FlickrAuth( APIKey , APISecret )
+  flickr = FlickrAuth(APIKey , APISecret)
 
   # Get collection tree
   # -------------------
@@ -91,11 +97,12 @@ def GetFlickrCollPhotosets( CollName , CollID ) :
 
   errno = 0
 
-  try: 
-    CollectionTree = flickr.collections_getTree( user_id=UserID , collection_id=CollID )
+  try :
+    CollectionTree = \
+        flickr.collections_getTree(user_id=UserID, collection_id=CollID)
   except Exception as rc :
     print rc
-    errno = int( rc.message.split(":")[1] )
+    errno = int(rc.message.split(":")[1])
     if errno != 2 :
       exit(2)
 
@@ -110,7 +117,7 @@ def GetFlickrCollPhotosets( CollName , CollID ) :
   return PhotosetDict
 
 
-def Flickr2Local( Catalog , InName ) :
+def Flickr2Local(Catalog , InName) :
 
   # .. Get local name ..
   OutName = ""
@@ -122,7 +129,7 @@ def Flickr2Local( Catalog , InName ) :
   return OutName
 
 
-def Local2Flickr( Catalog , InName ) :
+def Local2Flickr(Catalog , InName) :
 
   # .. Get local name ..
   OutName = ""
@@ -136,28 +143,26 @@ def Local2Flickr( Catalog , InName ) :
   return OutName
 
 
-def FlickrCount( PhotosetDict , File ) :
+def FlickrCount(PhotosetDict , File) :
 
   #===================================================================#
   # Get Flickr count for one collection and dump it to file           #
   #===================================================================#
 
-
   # Flickr authentication
   # ---------------------
   # print "Flickr Authentication"
-  flickr = FlickrAuth( APIKey , APISecret )
-
+  flickr = FlickrAuth(APIKey, APISecret)
 
   # for Collection in CollectionTree[0].findall('.//collection') :
   #   CollectionDict[Collection.get('title')] = Collection.get('id')
 
   # Open output file
   # ----------------
-  try:
-    S_File = open( File, 'w' )
+  try :
+    S_File = open(File, 'w')
   except Exception, rc:
-    print "Error opening %s : %s" % ( File, rc )
+    print "Error opening %s : %s" % (File, rc)
     exit()
 
   Total = 0
@@ -165,22 +170,22 @@ def FlickrCount( PhotosetDict , File ) :
   for Title , ID in PhotosetDict.iteritems() :
     Photoset = flickr.photosets_getInfo(photoset_id=ID)
     Nb = Photoset[0].get('count_photos')
-    Total = Total + int( Nb )
+    Total = Total + int(Nb)
 
-    String = "%-50s %4s\n" % ( '"'+Title+'"' , Nb )
+    String = "%-50s %4s\n" % ('"'+Title+'"' , Nb)
 
     # Write to output file
     # --------------------
     try :
-      S_File.write( String.encode("utf-8") )
+      S_File.write(String.encode("utf-8"))
     except :
       print "Error Writing %s" % File
 
   # Write total to output file
   # --------------------------
-  String = "%-50s %4s\n" % ( '"Total"' , Total )
+  String = "%-50s %4s\n" % ('"Total"' , Total)
   try :
-    S_File.write( String.encode("utf-8") )
+    S_File.write(String.encode("utf-8"))
   except :
     print "Error Writing %s" % File
 
@@ -191,7 +196,7 @@ def FlickrCount( PhotosetDict , File ) :
   return
 
 
-def FlickrPhotoList( ID ) :
+def FlickrPhotoList(ID) :
 
   #===================================================================#
   # Get Flickr photos list for one photoset                           #
@@ -200,13 +205,12 @@ def FlickrPhotoList( ID ) :
   # Flickr authentication
   # ---------------------
   # print "Flickr Authentication"
-  flickr = FlickrAuth( APIKey , APISecret )
+  flickr = FlickrAuth(APIKey , APISecret)
 
-  try:
+  try :
     PhotoList = flickr.photosets_getPhotos(photoset_id=ID)
   except:
     print "Error retrieving photo list"
     exit()
 
   return PhotoList
-  

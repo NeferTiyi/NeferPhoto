@@ -5,12 +5,12 @@
 from __future__ import print_function, unicode_literals, division
 
 # Standard library imports
-import sys
+#import sys
 import os.path
-import re
-import glob
+#import re
+#import glob
 import subprocess
-import fnmatch
+#import fnmatch
 
 # Application library imports
 
@@ -23,13 +23,13 @@ copyright = "-copyright={}".format(author)
 artist    = "-artist={}".format(author)
 
 
-def check_exif_ok(filein) :
+def check_exif_ok(filein):
 
   command = ["exiftool", "-make", filein]
 
-  try :
+  try:
     output = subprocess.check_output(command)
-  except Exception as rc :
+  except Exception as rc:
     print("Error")
     output = ""
 
@@ -38,20 +38,20 @@ def check_exif_ok(filein) :
   return status
 
 
-def heal_exif(filein, filedxo) :
+def heal_exif(filein, filedxo):
 
   command = ["exiftool", "-overwrite_original_in_place",
              copyright, artist, "-addTagsFromFile",
              filedxo, filein]
 
-  if not os.path.isfile(filedxo) :
+  if not os.path.isfile(filedxo):
     print("Missing {}".format(filedxo))
-  else :
+  else:
     print("{} @ {}".format(filein, filedxo))
 
-    try :
+    try:
       subprocess.call(command)
-    except Exception as rc :
+    except Exception as rc:
       print("Error in exiftool for {}".format(filein))
       exit()
 

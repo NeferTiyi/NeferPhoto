@@ -20,20 +20,19 @@ from __future__ import print_function, unicode_literals, division
 # ========================
 import sys
 import os.path
-import re
+#import re
 import argparse
-import subprocess
-import fnmatch
-import math
+#import subprocess
+#import fnmatch
+#import math
 import time
-import shutil
+#import shutil
 import PythonMagick
-# import os.stat
-# import flickrapi
 
 sys.path.append('./python')
 
 # Application library imports
+# ===========================
 from NeferPhotos import *
 from NeferFlickr import *
 from HealExif    import *
@@ -48,7 +47,8 @@ parser.add_argument("-v", "--verbose", action="store_true",
 parser.add_argument("-i", "--info", action="store_true",
                     help="Print config.card info")
 parser.add_argument("--check", action="store_true",
-                    help="Don't do anything, just print what would be done")
+                    help="Don't do anything, just print what would \
+                          be done")
 parser.add_argument("-n", "--rename", action="store_true",
                     help="Rename pictures")
 parser.add_argument("-u", "--update", action="store_true",
@@ -58,7 +58,8 @@ parser.add_argument("-d", "--directory",
 parser.add_argument("-c", "--count", action="store_true",
                     help="Count local and Flickr pictures")
 parser.add_argument("-m", "--missing", action="store_true",
-                    help="Search for not processed RAW files or JPG files with no RAW")
+                    help="Search for not processed RAW files or JPG \
+                          files with no RAW")
 parser.add_argument("-td", "--tifdbl", action="store_true",
                     help="Search for already processed TIF pictures")
 parser.add_argument("-tm", "--tifmis", action="store_true",
@@ -155,15 +156,8 @@ flickr_ok = True
 # Build DirList
 # =============
 (DirList, DirListOri) = \
-  BuildDirList(DIR_HOME, SUBMIT_DIR, \
-                ConfigDict["Year"], args.directory)
-
-# if args.verbose:
-#   for DirName in DirList:
-#     print DirName
-#   for DirName in DirListOri:
-#     print DirName
-
+    BuildDirList(DIR_HOME, SUBMIT_DIR,
+                 ConfigDict["Year"], args.directory)
 
 # Load photosets list
 # ===================
@@ -179,9 +173,6 @@ if args.info:
   PrintInfos(ProjectID, ConfigDict)
   if args.verbose:
     print("\n%3s directories\n===============" % (len(DirList)))
-    # for DirName in DirListOri:
-    #   print DirName
-    # print 72*"-"
     for DirName in DirList:
       print(DirName)
 
@@ -212,7 +203,7 @@ if args.update:
       JpgFile = Raw2Jpg(File, ProjectName)
 
       Matches = FindMatches(DirName, JpgFile)
-      Count =  len(Matches)
+      Count   = len(Matches)
 
       if Count > 1:
         for Match in Matches[1:]:
@@ -268,7 +259,7 @@ if args.rename:
     if not os.path.isdir(DirName):
       continue
 
-    RawList = RawList               + \
+    RawList = RawList             + \
               GetRawList(DirName) + \
               FindMatches(DirName, "*.MTS")
 
@@ -277,10 +268,6 @@ if args.rename:
   NewNum  = 0
   PrevNum = 0
   PrevPre = ""
-
-  # if args.verbose:
-  #   for File in SortedList:
-  #     print File
 
   # nwrit = 0
 
@@ -313,7 +300,7 @@ if args.rename:
     if Ext == "JPG" and filebase[0] == "P":
       Num = filebase[4:8]
       Pre = "P000"
-    elif Ext == "MTS": 
+    elif Ext == "MTS":
       Num = filebase[1:5]
       Pre = "VID_"
     else:
@@ -333,7 +320,7 @@ if args.rename:
     String = "mv -i {:50s} {:50s}\n".format(
                '\"' + File + '\"',
                '\"' + os.path.join(TmpDir, FileOut) + '\"'
-            )
+             )
     if args.verbose:
       print(String)
     S_File.write(String)
@@ -378,7 +365,7 @@ if args.missing:
       JpgFile = Raw2Jpg(File, ProjectName)
 
       Matches = FindMatches(DirName, JpgFile)
-      Count =  len(Matches)
+      Count   = len(Matches)
 
       if Count != 1:
         PrintDir = PrintDirName(DirName, PrintDir)
@@ -462,12 +449,14 @@ if args.count:
     # Status
     # ------
     (StatD, StatL, StatO, StatF) = \
-                      GetStatus(DeltaL, DeltaF, CountB, CountF)
+        GetStatus(DeltaL, DeltaF, CountB, CountF)
 
-    PrintCount("ligne", DirName,
-                CountI, CountO, CountB, CountF,
-                DeltaL, DeltaF,
-                StatD, StatL, StatO, StatF)
+    PrintCount(
+        "ligne", DirName,
+        CountI, CountO, CountB, CountF,
+        DeltaL, DeltaF,
+        StatD, StatL, StatO, StatF
+    )
 
   # Total
   # -----
@@ -482,12 +471,14 @@ if args.count:
     TotalF = 0
     DeltaF = 0
   (StatD, StatL, StatO, StatF) = \
-                  GetStatus(DeltaL, DeltaF, TotalB, TotalF)
+      GetStatus(DeltaL, DeltaF, TotalB, TotalF)
 
-  PrintCount("total", "Total",
-              TotalI, TotalO, TotalB, TotalF,
-              DeltaL, DeltaF,
-              StatD, StatL, StatO, StatF)
+  PrintCount(
+      "total", "Total",
+      TotalI, TotalO, TotalB, TotalF,
+      DeltaL, DeltaF,
+      StatD, StatL, StatO, StatF
+  )
 
   PrintCount("foot")
 
@@ -507,7 +498,7 @@ if args.tifdbl:
 
     for File in JpgList:
       (JpgDir, JpgFile, TifFile) = \
-        JpgTifFiles(File, "_tif.jpg", ".tif")
+          JpgTifFiles(File, "_tif.jpg", ".tif")
 
       Matches = FindMatches(DirName, TifFile)
 
@@ -523,7 +514,6 @@ if args.tifdbl:
 if args.tifmis:
 
   ChangeDir(DIR_HOME)
-  # print os.getcwd()
 
   for DirName in DirList:
     PrintDir = True
@@ -534,7 +524,7 @@ if args.tifmis:
 
     for File in TifList:
       (TifDir, TifFile, JpgFile) = \
-        JpgTifFiles(File, ".tif", "_tif.jpg")
+          JpgTifFiles(File, ".tif", "_tif.jpg")
 
       Matches = FindMatches(DirName, JpgFile)
 
@@ -635,20 +625,21 @@ if args.compar:
       UpdateLocal(LocalLog, DirName, ProjectName+"_*.jpg")
       UpdateFlickr(FlickrLog, DirFlickr, PhotosetDict)
 
-    if os.path.isfile (LocalLog) and os.path.isfile (FlickrLog):
+    if os.path.isfile(LocalLog) and \
+       os.path.isfile(FlickrLog):
       IdemFiles = False
       IdemFiles = CheckFilesIdem(LocalLog, FlickrLog)
-      if (not IdemFiles):
+      if IdemFiles:
         print("Files {} and {} are identical".format(LocalLog, FlickrLog))
       else:
         Status = LaunchGvim(LocalLog, FlickrLog)
     else:
       print(os.path.isfile(LocalLog), os.path.isfile(FlickrLog))
 
-
   LocalLog  = os.path.join(LocalPath , "LocalPhotoList_full.txt")
   FlickrLog = os.path.join(FlickrPath, "FlickrPhotoList_full.txt")
-  if os.path.isfile (LocalLog) and os.path.isfile (FlickrLog):
+  if os.path.isfile(LocalLog) and \
+     os.path.isfile(FlickrLog):
     IdemFiles = False
     IdemFiles = CheckFilesIdem(LocalLog, FlickrLog)
     if IdemFiles:
@@ -666,7 +657,6 @@ if args.rsync:
   ChangeDir(DIR_HOME)
 
   Pattern = ProjectName + "_*.jpg"
-
 
   # Local rsync: from individual dir to DIR_OUT
   # --------------------------------------------
@@ -696,7 +686,6 @@ if args.rsync:
 
       RsyncExec(DirName, Pattern, ConfigDict["DIR_OUT"])
 
-
   # Remote rsync: from individual dir to remote store dir
   # ------------------------------------------------------
   if ConfigDict["DIR_STORE"] != "NONE":
@@ -708,8 +697,8 @@ if args.rsync:
     UploadDir = os.path.join(ConfigDict["DIR_STORE"], "upload")
 
     print(ConfigDict["LastUpload"])
-    LastUpload = time.strptime(ConfigDict["LastUpload"], \
-                                "%Y-%m-%d_%H:%M")
+    LastUpload = time.strptime(ConfigDict["LastUpload"],
+                               "%Y-%m-%d_%H:%M")
     print(time.mktime(LastUpload))
 
     if not os.path.isdir(ConfigDict["DIR_STORE"]):
@@ -718,7 +707,6 @@ if args.rsync:
     if not os.path.isdir(UploadDir):
       print("mkdir %s" % UploadDir)
       MakeDir(UploadDir)
-
 
     for DirName in DirList:
       PrintDir = True
@@ -734,20 +722,18 @@ if args.rsync:
 
       PrintDir = PrintDirName(DirName, PrintDir)
 
-      UploadClean ("upload", Pattern, ConfigDict["DIR_STORE"])
+      UploadClean("upload", Pattern, ConfigDict["DIR_STORE"])
 
       RsyncExec(DirName, Pattern, ConfigDict["DIR_STORE"])
 
-
     # Remote rsync: from individual dir to remote store dir
     # ------------------------------------------------------
-    
     print(72*"=")
     print("  Files to upload")
     print(72*"=")
 
-    UploadList(ConfigDict["DIR_STORE"], Pattern, "upload", \
-                time.mktime(LastUpload))
+    UploadList(ConfigDict["DIR_STORE"], Pattern, "upload",
+               time.mktime(LastUpload))
 
   ChangeDir(SUBMIT_DIR)
 
@@ -784,3 +770,4 @@ if args.watermark:
   ChangeDir(SUBMIT_DIR)
 
 exit()
+

@@ -1,7 +1,14 @@
-#!/usr/bin/python
-# -*-coding:utf-8 -*
+#!/usr/bin/env python
+# -*-coding: utf-8 -*
 
-import sys, os.path, re, glob, subprocess, fnmatch, shutil, time
+import sys
+import os.path
+#import re
+import glob
+import subprocess
+#import fnmatch
+import shutil
+#import time
 
 # # Flickr ID
 # # ---------
@@ -67,7 +74,7 @@ def ChangeDir(DirName):
   # print os.getcwd()
 
 
-def CleanName (Name):
+def CleanName(Name):
 
   CleanDict = {
     "/": "-",
@@ -101,7 +108,7 @@ def InitConfigDict(DIR_HOME, ID, CatFile, Init):
   return DictOut
 
 
-def ReadConfigCard (File, ConfigDict, Init):
+def ReadConfigCard(File, ConfigDict, Init):
 
   if Init or \
      not os.path.exists(File):
@@ -135,7 +142,8 @@ def ReadConfigCard (File, ConfigDict, Init):
   for Opt in ConfigDict.iterkeys():
     for Option, Valeur in ConfigDict.iteritems():
       if Opt in Valeur:
-        ConfigDict[Option] = Valeur.replace("${"+Opt+"}",ConfigDict[Opt])
+        ConfigDict[Option] = \
+            Valeur.replace("${"+Opt+"}", ConfigDict[Opt])
 
   return ConfigDict
 
@@ -279,7 +287,7 @@ def BuildDirList(DIR_HOME, SUBMIT_DIR, Year, DirName):
   ChangeDir(SUBMIT_DIR)
 
   DirNameLen = max(map(len, DirList))
-  if DirNameLen > MaxDirNameLen: 
+  if DirNameLen > MaxDirNameLen:
     DirNameLen = MaxDirNameLen
 
   return DirList, DirListOri
@@ -328,7 +336,7 @@ def LoadPhotosetCatalog(File):
     Fields = line.split('"')
     Local  = str.strip(Fields[0])
     Flickr = str.strip(Fields[1])
-    PhotosetList.append({ 'local': Local, 'flickr': Flickr})
+    PhotosetList.append({'local': Local, 'flickr': Flickr})
 
   # Close file
   # ----------
@@ -337,10 +345,10 @@ def LoadPhotosetCatalog(File):
   return PhotosetList
 
 
-def PrintCount(mode, DirName="", \
-                CountI=0, CountO=0, CountB=0, CountF=0, \
-                DeltaL=0, DeltaF=0, \
-                StatD="", StatL="", StatO="", StatF=""):
+def PrintCount(mode, DirName="",
+               CountI=0, CountO=0, CountB=0, CountF=0,
+               DeltaL=0, DeltaF=0,
+               StatD="", StatL="", StatO="", StatF=""):
 
   #===================================================================#
   # Print local and Flickr count                                      #
@@ -383,14 +391,17 @@ def PrintCount(mode, DirName="", \
                "| "     + FormatList[5]*"?"  + " "    + \
                "| "     + FormatList[6]*"?"  + " |"
 
-
   if mode == "head":
     print LineLen*"="
 
     print FormatHead % (
-      Bold, "DirName", NoCol,
-      Bold, " RAW", NoCol, Bold, " JPG", NoCol, Bold, " Dbl", NoCol, 
-      Bold, " Delta", NoCol, Bold, "Flickr", NoCol, Bold, "Delta", NoCol
+        Bold, "DirName", NoCol,
+        Bold, " RAW", NoCol,
+        Bold, " JPG", NoCol,
+        Bold, " Dbl", NoCol,
+        Bold, " Delta", NoCol,
+        Bold, "Flickr", NoCol,
+        Bold, "Delta", NoCol
     )
     print FormatSep
 
@@ -398,31 +409,41 @@ def PrintCount(mode, DirName="", \
     print LineLen*"="
 
   elif mode == "miss":
-    print FormatMiss % (BoldRed,DirName,NoCol)
+    print FormatMiss % (BoldRed, DirName, NoCol)
 
   elif mode == "ligne":
     if CountF == MissByte:
       print FormatMiss % (
-        StatD,DirName,NoCol,
-        CountI, StatO,CountO,NoCol, CountB,
-        StatL,DeltaL,NoCol
+          StatD, DirName, NoCol,
+          CountI,
+          StatO, CountO, NoCol,
+          CountB,
+          StatL, DeltaL, NoCol
       )
     else:
       print FormatLine % (
-        StatD,DirName,NoCol,
-        CountI, StatO,CountO,NoCol, CountB,
-        StatL,DeltaL,NoCol, StatF,CountF,NoCol, StatF,DeltaF,NoCol
+          StatD, DirName, NoCol,
+          CountI,
+          StatO, CountO, NoCol,
+          CountB,
+          StatL, DeltaL, NoCol,
+          StatF, CountF, NoCol,
+          StatF, DeltaF, NoCol
       )
   elif mode == "total":
     print FormatSep
     print FormatLine % (
-      StatD,DirName,NoCol,
-      CountI, StatO,CountO,NoCol, CountB,
-      StatL,DeltaL,NoCol, StatF,CountF,NoCol, StatF,DeltaF,NoCol
+        StatD, DirName, NoCol,
+        CountI,
+        StatO, CountO, NoCol,
+        CountB,
+        StatL, DeltaL, NoCol,
+        StatF, CountF, NoCol,
+        StatF, DeltaF, NoCol
     )
 
 
-def FindOri (DirListOri):
+def FindOri(DirListOri):
 
   #===================================================================#
   # Search for misplaced processed pictures                           #
@@ -436,7 +457,7 @@ def FindOri (DirListOri):
     if len(FileList) > 0:
       PrintDir = PrintDirName(DirName, PrintDir)
       FileList.sort()
-      for FileName in FileList: 
+      for FileName in FileList:
         print os.path.basename(FileName)
 
 
@@ -490,8 +511,8 @@ def DxO2InOut(DxOFile, ProjectName, DIR_HOME):
 
   FileIn  = os.path.join(DIR_HOME, DxOFile)
   FileOut = os.path.join(
-              DIR_HOME, ImgDir,
-              ProjectName+"_"+ImgNum+ImgOrd+ImgExt
+                DIR_HOME, ImgDir,
+                ProjectName+"_"+ImgNum+ImgOrd+ImgExt
             )
 
   return FileIn, FileOut
@@ -512,9 +533,6 @@ def Jpg2Raw(JpgFile, ProjectName):
   Pos = os.path.basename(JpgFile).find("_")
   Num = os.path.basename(JpgFile)[Pos+1:Pos+5]
 
-  # RawFile1 = "IMG_" + Num + ".CR2"
-  # RawFile2 = "P000" + Num + ".JPG"
-  # RawFile3 = "IMG_" + Num + ".JPG"
   RawFile1 = "IMG_{}.CR2".format(Num)
   RawFile2 = "P000{}.JPG".format(Num)
   RawFile3 = "IMG_{}.JPG".format(Num)
@@ -559,7 +577,7 @@ def GetCountB(DirName, File):
 
   Command = ["grep", "-c", DirName, File]
   try:
-    # output  = float(subprocess.check_output(Command))
+    # output = float(subprocess.check_output(Command))
     output = int(subprocess.check_output(Command))
   except Exception as rc:
     output = -1
@@ -649,7 +667,8 @@ def UpdateFlickr(FileOut, DirFlickr, PhotosetDict):
     try:
       SetID = PhotosetDict[DirFlickr.decode("utf-8")]
     except Exception as rc:
-      print "Error retrieving flickr set ID for <%s> from photoset catalog: %s" % \
+      print "Error retrieving flickr set ID for <%s> \
+             from photoset catalog: %s" % \
             (DirFlickr, rc)
       return
 
@@ -678,7 +697,7 @@ def FullPhotolist(Mode, PathIO):
   Pattern = "PhotoList_*.txt"
   FileOut = Mode + "PhotoList_full.txt"
 
-  Matches = glob.glob(os.path.join(PathIO , Mode+Pattern))
+  Matches = glob.glob(os.path.join(PathIO, Mode+Pattern))
 
   with open(os.path.join(PathIO, FileOut), 'wb') as O_File:
     for Match in Matches:
@@ -752,7 +771,7 @@ def RsyncExec(DirName, Pattern, DirOut):
 #   #   except Exception as rc:
 #   #     print "Error during move %s => %s: %i" % \
 #   #           (File, DirOut, rc)
-  
+
 #   # ChangeDir(BackDir)
 
 
@@ -760,8 +779,8 @@ def RsyncExec(DirName, Pattern, DirOut):
 #   # # ----
 #   ChangeDir(DirName)
 
-#   Command = ["rsync", "-va", "./", "--exclude", "Ori*", \
-#               "--include", Pattern, DirOut]
+#   Command = ["rsync", "-va", "./", "--exclude", "Ori*",
+#              "--include", Pattern, DirOut]
 
 #   try:
 #     output = subprocess.call(Command)
@@ -802,146 +821,6 @@ def UploadList(DirIn, Pattern, DirOut, LastUpload):
   for File in glob.glob(Pattern):
     if os.path.getmtime(File) > LastUpload:
       MoveFile(File, DirOut)
-  
+
   ChangeDir(BackDir)
 
-
-# #!/usr/bin/env python
-# # -*-coding:utf-8 -*
-
-# # ****************************
-# # Modules
-# # =======
-# import sys
-# import os.path
-# import glob
-# import math
-
-# import Image
-# import ImageDraw
-# import ImageFont
-# import ImageEnhance
-
-# sys.path.append('./python')
-
-
-# def watermark_build(text=u"\u00A9" + " Sonia Labetoulle", opacity=0.66):
-
-#   # font_name = "/home/slipsl/.fonts/SegoePrint.ttf"
-#   font_name = "/usr/local/share/fonts/s/segoepr.ttf"
-#   font_size = 300
-
-#   font = ImageFont.truetype(font_name, font_size)
-
-#   wm = Image.new("RGBA", font.getsize(text))
-#   draw = ImageDraw.Draw(wm)
-
-#   ratio = font_size / 15
-#   for a in xrange(0, 360, 30):
-#     coords = (ratio * math.cos(a*math.pi/180),
-#               ratio * math.sin(a*math.pi/180))
-#     draw.text(coords, text, font=font, fill="#000000")
-
-#   draw.text((0, 0), text, font=font, fill="#ffffff")
-
-#   # Apply opacity to watermark
-#   # ==========================
-#   wm = ImageEnhance.Brightness(wm).enhance(opacity)
-
-#   return wm
-
-
-# def watermark_build1(text=u"\u00A9" + " Sonia Labetoulle"):
-
-#   font_name = "/home/slipsl/.fonts/SegoePrint.ttf"
-#   font_size = 300
-
-#   font = ImageFont.truetype(font_name, font_size)
-
-#   wm = Image.new("RGBA", font.getsize(text))
-#   draw = ImageDraw.Draw(wm)
-
-#   draw.text((30, 30), text, font=font, fill="#000000")
-#   draw.text((0, 0), text, font=font, fill="#ffffff")
-
-#   return wm
-
-
-# def watermark_build2(text=u"\u00A9" + " Sonia Labetoulle"):
-
-#   font_name = "/home/slipsl/.fonts/SegoePrint.ttf"
-#   font_size = 300
-
-#   font = ImageFont.truetype(font_name, font_size)
-
-#   wm1 = Image.new("RGBA", font.getsize(text))
-#   draw = ImageDraw.Draw(wm1)
-#   draw.text((0, 0), text, font=font, fill="#ff0000")
-#   wm1_w, wm1_h = wm1.size
-
-#   wm2 = Image.new("RGBA", font.getsize(text))
-#   draw = ImageDraw.Draw(wm2)
-#   draw.text((0, 0), text, font=font, fill="#0000ff")
-
-#   ratio = 0.75
-#   wm2_resize = (int(ratio*wm1_w), int(ratio*wm1_h))
-#   wm2 = wm2.resize(wm2_resize, Image.ANTIALIAS)
-#   wm2_w, wm2_h = wm2.size
-
-#   paste_pos = ((wm1_w-wm2_w)/2, (wm1_h-wm2_h)/2)
-#   wm1.paste(wm2, paste_pos, wm2)
-
-#   return wm1
-
-
-# def watermark_apply(
-#   img_in, img_out, text=u"\u00A9" + " Sonia Labetoulle",
-#   opacity=0.66, wm_ratio=3):
-
-#   img = Image.open(img_in)
-
-#   img_width, img_height = img.size
-#   # img_mode = img.mode
-#   img_format = img.format
-
-#   wm = watermark_build3(text, opacity)
-#   wm_width, wm_height = wm.size
-
-#   # Resize watermark according to image width
-#   # =========================================
-#   if wm_width > (img_width / wm_ratio):
-#     ratio = float(img_width) / (wm_ratio*float(wm_width))
-#     wm_resize = (int(ratio*wm_width), int(ratio*wm_height))
-
-#     wm = wm.resize(wm_resize, Image.ANTIALIAS)
-
-#   # # Apply opacity to watermark
-#   # # ==========================
-#   # wm = ImageEnhance.Brightness(wm).enhance(opacity)
-
-#   # Paste watermark on image
-#   # ========================
-#   pad_width = int(float(img_width) / 100.)
-#   pad_height = 0
-#   wm_width, wm_height = wm.size
-#   wm_pos = (img_width  - (wm_width+pad_width),
-#             img_height - (wm_height+pad_height))
-
-#   img.paste(wm, wm_pos, wm)
-
-#   img.save(img_out, img_format)
-
-#   return
-
-
-# if __name__ == '__main__':
-
-#   dir_in  = "img"
-#   dir_out = os.path.join(dir_in, "wm")
-
-#   for img_in in glob.glob(os.path.join(dir_in, "*.jpg")):
-#     img_name = os.path.basename(img_in).split(".")[0]
-#     img_ext  = os.path.basename(img_in).split(".")[1]
-#     img_out  = os.path.join(dir_out, img_name+"_wm."+img_ext)
-#     print img_in, img_out
-#     watermark_apply(img_in, img_out, opacity=0.50)

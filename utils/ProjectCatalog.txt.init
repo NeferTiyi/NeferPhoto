@@ -1,4 +1,8 @@
-HE11    /mnt/Photos/Egypte/HauteEgypte2011
-HE12    /mnt/Photos/Egypte/HauteEgypte2012
-DO13    /mnt/Photos/Egypte/DesertsOasis2013
-CO13    /mnt/Photos/Danse/Alexia2013
+{
+  "HE12" : "/media/LilScarab/Documents/Pictures/HauteEgypte2012",
+  "DO13" : "/media/LilScarab/Documents/Pictures/DesertsOasis2013",
+  "CO13" : "/media/LilScarab/Documents/Pictures/Alexia2013",
+  "EX13" : "/media/LilScarab/Documents/Pictures/Exeter2013",
+  "IN13" : "/media/LilScarab/Documents/Pictures/Inalco2013",
+  "SY09" : "/media/LilScarab/Documents/Pictures/Syrie2009"
+}
