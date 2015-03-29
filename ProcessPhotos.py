@@ -765,7 +765,7 @@ if args.watermark:
       WmFile = os.path.join(WmDir, Jpg2Wm(File))
       if not os.path.isfile(WmFile):
         print("%s => %s" % (File, WmFile))
-        watermark_apply(File, WmFile, wm, args.resize, wm_ratio=4)
+        watermark_apply(File, WmFile, wm, args.resize, wm_ratio=5)
 
   ChangeDir(SUBMIT_DIR)
 

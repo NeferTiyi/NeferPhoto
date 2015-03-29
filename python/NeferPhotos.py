@@ -596,8 +596,13 @@ def GetCountF(DirFlickr, File):
   CountF = MissByte
 
   if not DirFlickr == "-99":
+    Command = [
+      "grep",
+      # '"'+DirFlickr+'"',
+      "\"{}\"".format(DirFlickr.replace("[", "\[").replace("]", "\]")),
+      File
+    ]
     try:
-      Command = ["grep", '"'+DirFlickr+'"', File]
       output = subprocess.check_output(Command)
     except Exception as rc:
       output = "-1"
